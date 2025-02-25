@@ -58,9 +58,3 @@ def Get_embeddings(text):
 
 #testing embeddings
 #print(get_embeddings("test"))
-
-
-
-
-
-    
