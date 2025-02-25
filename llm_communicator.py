@@ -2,7 +2,6 @@
 #to connect with ANY LLM including OpenSource and ClosedSource
 from openai import OpenAI
 
-
 #the Client Declartion and Initialisation
 client = OpenAI(
     # API link for LLM where it is hosted
@@ -27,14 +26,9 @@ messages -> dictionary of chat history
 stream -> bool true to ask the llm to stream data
 """                                            
 
-
 #Non streamed datad
 def Get_NonStreamedResponse(messages):
     return client.chat.completions.create(messages, temperature=0,messages=messages)
-
-
-
-
 #==============================================================================
 #testing the Get_completion
 """ Testmessages = [
