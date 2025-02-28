@@ -1,0 +1,24 @@
+# requirements.txt
+# ----------------------------------------
+# HERE AND NOW AI - RAG Workshop Dependencies
+# This file contains all the necessary Python libraries required
+# to run the Retrieval-Augmented Generation (RAG) system.
+# ----------------------------------------
+
+# OpenAI's API wrapper (used for LLM interactions)
+openai
+
+# Gradio (for creating the chatbot UI)
+gradio
+
+# PyPDF2 (for extracting text from PDFs)
+PyPDF2
+
+# NumPy (for numerical operations and handling embeddings)
+numpy
+
+# BeautifulSoup4 (for web scraping and parsing HTML content)
+bs4
+
+# Scikit-learn (for computing cosine similarity with embeddings)
+scikit-learn

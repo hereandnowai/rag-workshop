@@ -1,67 +1,85 @@
-# import our llm communicator
-from llm_communicator import Get_StreamedResponse
+# rag_rawtext.py
+# ----------------------------------------
+# HERE AND NOW AI - RAG System with Raw Text (PDF-based Retrieval)
+# This module extracts text from a PDF document and enables AI-driven responses
+# using Retrieval-Augmented Generation (RAG) techniques.
+# ----------------------------------------
+
 import PyPDF2
+from llm_communicator import Get_StreamedResponse
 
-#the path of the file we are going to ask question
-pdf_path = "temp/HereandNow_AI.pdf"
-#pdf Extractor - Pdf to Text converter
+# Define the path to the PDF file (ensure the correct file is placed in the `temp` directory)
+PDF_PATH = "temp/HereandNow_AI.pdf"
 
-# Function to extract text from PDF
 def extract_pdf_text(pdf_path):
-    # open the pdf file , read all pages using 
-    # for loop and extract text from the pdf and return the text
-    with open(pdf_path, 'rb') as file:
-        reader = PyPDF2.PdfReader(file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text()
-        return text
-    
-#Test PDF to text converter
-#print(extract_pdf_text(pdf_path))
+    """
+    Extracts and returns text from a given PDF file.
 
-#Function to chat with llm
+    Parameters:
+    - pdf_path (str): Path to the PDF file.
+
+    Returns:
+    - str: Extracted text from the PDF.
+    """
+    text = ""
+    try:
+        with open(pdf_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+    except Exception as e:
+        print(f"Error reading PDF: {e}")
+        return "Error extracting text from PDF."
+
+    return text.strip()
+
 def chat_with_rawtext(message, history):
-    
-    # Initialize empty string for streaming response
-    response = ""
+    """
+    Handles user interaction using AI responses based on extracted PDF content.
 
-     # Convert system prompt to messages format
-     # This tell the llm what role it has to play like
-     # What how to process the input and what output format It has to reply
+    Parameters:
+    - message (str): The latest user query.
+    - history (list): List of previous conversation exchanges.
+
+    Returns:
+    - generator: Streams AI responses based on PDF content.
+    """
+    
+    # System message defining AI's role
     messages = [
-        {"role": "system", "content": "You are a helpful assistant that helps answer questions based on PDF content."}
+        {"role": "system", "content": "You are a knowledgeable AI assistant specializing in answering questions based on the provided PDF content."}
     ]
 
-    # Add history messages 
+    # Add conversation history for context
     for h in history:
         messages.append({"role": "user", "content": h[0]})
-        if h[1]:  # Only add assistant message if it exists
+        if h[1]:  # Only add assistant's previous response if available
             messages.append({"role": "assistant", "content": h[1]})
 
-
-
-    ####
-    pdf_messages = messages    
     # Extract text from the PDF
-    pdf_extract = extract_pdf_text(pdf_path)
+    pdf_extract = extract_pdf_text(PDF_PATH)
+    if "Error extracting text" in pdf_extract:
+        return ["Error: Unable to retrieve content from the PDF."]
+
+    # Formulate the AI prompt with extracted content
     prompt = f"Context: {pdf_extract}\n\nQuestion: {message}\nAnswer:"
-
-    # Add current pdf content to message
-    pdf_messages.append({"role": "user", "content": f"{prompt}"})
-      
-    # Add current message in UI
-    messages.append({"role": "user", "content": message})
-
     
+    # Append the extracted text as part of the message
+    messages.append({"role": "user", "content": prompt})
 
-    #call get_completion and get response
-    completion = Get_StreamedResponse(pdf_messages)
+    # Get AI response using streamed completion
+    completion = Get_StreamedResponse(messages)
 
-    # Stream the response
+    # Stream AI-generated response
+    response = ""
     for chunk in completion:
         if chunk.choices[0].delta.content is not None:
             content = chunk.choices[0].delta.content
             response += content
             yield response
 
+# ----------------------------------------
+# End of rag_rawtext.py
+# ----------------------------------------

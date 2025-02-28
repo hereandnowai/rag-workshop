@@ -1,101 +1,135 @@
-# import our llm communicator
-from llm_communicator import Get_StreamedResponse, Get_embeddings
+# rag_vectortext.py
+# ----------------------------------------
+# HERE AND NOW AI - RAG System with Vector Embeddings
+# This module extracts text from a PDF, converts it into vector embeddings,
+# and retrieves the most relevant chunks to generate AI responses.
+# ----------------------------------------
+
 import PyPDF2
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from llm_communicator import Get_StreamedResponse, Get_embeddings
 
+# Define the path to the PDF file
+PDF_PATH = "temp/HereandNow_AI.pdf"
 
-
-#the path of the file we are going to ask question
-pdf_path = "temp/HereandNow_AI.pdf"
-#pdf Extractor - Pdf to Text converter
-
-# Function to extract text from PDF
 def extract_pdf_text(pdf_path):
-    # open the pdf file , read all pages using 
-    # for loop and extract text from the pdf and return the text
-    with open(pdf_path, 'rb') as file:
-        reader = PyPDF2.PdfReader(file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text()
-        return text
-    
+    """
+    Extracts and returns text from a given PDF file.
 
+    Parameters:
+    - pdf_path (str): Path to the PDF file.
 
-#Test PDF to text converter
-#print(extract_pdf_text(pdf_path))
+    Returns:
+    - str: Extracted text from the PDF.
+    """
+    text = ""
+    try:
+        with open(pdf_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+    except Exception as e:
+        print(f"Error reading PDF: {e}")
+        return "Error extracting text from PDF."
 
+    return text.strip()
 
-# Function to chunk text into smaller pieces
 def chunk_text(text, chunk_size=500):
-    # Split the text into smaller chunks that are around `chunk_size` characters long
-    chunks = [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-    return chunks
+    """
+    Splits text into smaller chunks for efficient embedding-based retrieval.
 
-# Function to find the most relevant chunk using cosine similarity
+    Parameters:
+    - text (str): The full extracted text.
+    - chunk_size (int): The size of each chunk (default: 500 characters).
+
+    Returns:
+    - list: A list of text chunks.
+    """
+    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
 def find_most_relevant_chunk(question, chunks):
-    question_embedding = Get_embeddings(question)
-    chunk_embeddings = [Get_embeddings(chunk) for chunk in chunks]
+    """
+    Finds the most relevant text chunk by computing cosine similarity
+    between the question embedding and precomputed chunk embeddings.
+
+    Parameters:
+    - question (str): The user query.
+    - chunks (list): List of text chunks.
+
+    Returns:
+    - str: The most relevant chunk of text.
+    """
+    try:
+        question_embedding = Get_embeddings(question)
+        chunk_embeddings = [Get_embeddings(chunk) for chunk in chunks]
+
+        # Compute cosine similarity scores
+        similarities = [cosine_similarity([question_embedding], [chunk_embedding])[0][0] for chunk_embedding in chunk_embeddings]
+        
+        # Find and return the most relevant chunk
+        most_relevant_chunk_index = np.argmax(similarities)
+        return chunks[most_relevant_chunk_index]
     
-    # Compute cosine similarity between the question embedding and chunk embeddings
-    similarities = [cosine_similarity([question_embedding], [chunk_embedding])[0][0] for chunk_embedding in chunk_embeddings]
-    
-    # Find the chunk with the highest similarity score
-    most_relevant_chunk_index = np.argmax(similarities)
-    return chunks[most_relevant_chunk_index]
+    except Exception as e:
+        print(f"Error computing similarity: {e}")
+        return "Error retrieving relevant information."
 
-
-
-#Function to chat with llm
 def chat_with_vectortext(message, history):
-    
-    # Initialize empty string for streaming response
-    response = ""
+    """
+    Handles user interaction with AI using vector-embedded PDF retrieval.
 
-     # Convert system prompt to messages format
-     # This tell the llm what role it has to play like
-     # What how to process the input and what output format It has to reply
+    Parameters:
+    - message (str): The latest user query.
+    - history (list): List of previous conversation exchanges.
+
+    Returns:
+    - generator: Streams AI responses based on vectorized PDF content.
+    """
+
+    # System message defining AI's role
     messages = [
-        {"role": "system", "content": "You are a helpful assistant that helps answer questions based on PDF content."}
+        {"role": "system", "content": "You are an AI assistant specializing in answering questions based on vectorized PDF content."}
     ]
 
-    # Add history messages 
+    # Add conversation history for better context
     for h in history:
         messages.append({"role": "user", "content": h[0]})
-        if h[1]:  # Only add assistant message if it exists
+        if h[1]:  # Only add assistant's previous response if available
             messages.append({"role": "assistant", "content": h[1]})
 
-    pdf_messages = messages    
-
     # Step 1: Extract text from the PDF
-    pdf_extract = extract_pdf_text(pdf_path)
+    pdf_extract = extract_pdf_text(PDF_PATH)
+    if "Error extracting text" in pdf_extract:
+        return ["Error: Unable to retrieve content from the PDF."]
 
-    # Step 2: Chunk the PDF text into smaller pieces
+    # Step 2: Chunk the PDF text into smaller sections
     chunks = chunk_text(pdf_extract)
     
-    # Step 3: Find the most relevant chunk based on the question
+    # Step 3: Find the most relevant chunk based on the user query
     relevant_chunk = find_most_relevant_chunk(message, chunks)
-    #print(relevant_chunk)
+    if "Error retrieving" in relevant_chunk:
+        return ["Error: Could not retrieve relevant information from the document."]
 
-
-
+    # Step 4: Construct AI prompt with retrieved content
     prompt = f"Context: {relevant_chunk}\n\nQuestion: {message}\nAnswer:"
-
-    # Add current pdf content to message
-    pdf_messages.append({"role": "user", "content": f"{prompt}"})
     
-    # Add current message in UI
-    messages.append({"role": "user", "content": message})
+    # Add retrieved content as part of the message
+    messages.append({"role": "user", "content": prompt})
 
-    
-    #call get_completion and get response
-    completion = Get_StreamedResponse(pdf_messages)
+    # Get AI response using streamed completion
+    completion = Get_StreamedResponse(messages)
 
-    # Stream the response
+    # Stream AI-generated response
+    response = ""
     for chunk in completion:
         if chunk.choices[0].delta.content is not None:
             content = chunk.choices[0].delta.content
             response += content
             yield response
 
+# ----------------------------------------
+# End of rag_vectortext.py
+# ----------------------------------------
