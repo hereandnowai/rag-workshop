@@ -7,14 +7,14 @@
 
 import gradio as gr
 # Import the chatbot logic (modify based on the use case)
-# from chatbot import chat_with_LLM
-# from rag_rawtext import chat_with_rawtext
-# from rag_web import chat_with_web
+#from chatbot import chat_with_LLM
+#from rag_rawtext import chat_with_rawtext
+#from rag_web import chat_with_web
 from rag_vectortext import chat_with_vectortext  # Using vector-based RAG retrieval
 
 # Define logo and favicon URLs (ensure they are hosted properly in the repository)
-LOGO_URL = "https://raw.githubusercontent.com/HERE-AND-NOW-ai/rag-workshop/refs/heads/main/images/chatbot_logo.png"
-FAVICON_URL = "https://raw.githubusercontent.com/HERE-AND-NOW-ai/rag-workshop/refs/heads/main/images/favicon.ico"
+LOGO_URL = 'https://raw.githubusercontent.com/HERE-AND-NOW-ai/rag-workshop/refs/heads/main/images/chatbot_logo.png'
+FAVICON_URL = 'https://raw.githubusercontent.com/HERE-AND-NOW-ai/rag-workshop/refs/heads/main/images/favicon.ico'
 
 # Create Gradio interface
 with gr.Blocks(title="HERE AND NOW AI") as demo:
@@ -52,4 +52,4 @@ with gr.Blocks(title="HERE AND NOW AI") as demo:
 
 # Launch Gradio app with favicon
 if __name__ == "__main__":
-    demo.launch(favicon_path=FAVICON_URL)
+    demo.launch(favicon_path = FAVICON_URL)

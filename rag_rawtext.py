@@ -9,7 +9,8 @@ import PyPDF2
 from llm_communicator import Get_StreamedResponse
 
 # Define the path to the PDF file (ensure the correct file is placed in the `temp` directory)
-PDF_PATH = "temp/HereandNow_AI.pdf"
+PDF_PATH = "pdfs/About_HERE_AND_NOW_AI.pdf"
+
 
 def extract_pdf_text(pdf_path):
     """

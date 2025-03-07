@@ -30,7 +30,7 @@ def Get_NonStreamedResponse(messages):
 # Example Usage (Uncomment to Test)
 # ----------------------------------------
 
-"""
+
 test_messages = [
     {"role": "system", "content": "You are a helpful AI assistant."},
     {"role": "user", "content": "Hi, I am Balaji."}
@@ -38,7 +38,7 @@ test_messages = [
 
 response = Get_NonStreamedResponse(test_messages)
 print("AI Response:", response)
-"""
+
 
 # ----------------------------------------
 # End of nonstreamed.py

@@ -8,10 +8,26 @@
 import PyPDF2
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from llm_communicator import Get_StreamedResponse, Get_embeddings
+from llm_communicator import Get_StreamedResponse, client
+
+
+
+# Function to get embeddings from OpenAI's API
+def Get_embeddings(text):
+    response = client.embeddings.create(
+        input=text,
+        model="nomic-embed-text"  
+    )
+    embedding = response.data[0].embedding
+    return embedding 
+
+#testing embeddings
+#print(get_embeddings("test"))
+
+
 
 # Define the path to the PDF file
-PDF_PATH = "temp/HereandNow_AI.pdf"
+PDF_PATH = "pdfs/About_HERE_AND_NOW_AI.pdf"
 
 def extract_pdf_text(pdf_path):
     """
