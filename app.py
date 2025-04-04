@@ -7,10 +7,10 @@
 
 import gradio as gr
 # Import the chatbot logic (modify based on the use case)
-#from chatbot import chat_with_LLM
+from chatbot import chat_with_LLM
 #from rag_rawtext import chat_with_rawtext
 #from rag_web import chat_with_web
-from rag_vectortext import chat_with_vectortext  # Using vector-based RAG retrieval
+# from rag_vectortext import chat_with_vectortext  # Using vector-based RAG retrieval
 
 # Define logo and favicon URLs (ensure they are hosted properly in the repository)
 LOGO_URL = 'https://raw.githubusercontent.com/HERE-AND-NOW-ai/rag-workshop/refs/heads/main/images/chatbot_logo.png'
@@ -39,7 +39,7 @@ with gr.Blocks(title="HERE AND NOW AI") as demo:
     # Function to generate a response using RAG-based retrieval
     def bot(history):
         history[-1][1] = ""  # Initialize assistant's response
-        for chunk in chat_with_vectortext(history[-1][0], history[:-1]):
+        for chunk in chat_with_LLM(history[-1][0], history[:-1]):
             history[-1][1] = chunk  # Append generated response
             yield history
 
